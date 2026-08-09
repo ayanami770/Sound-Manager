@@ -5,7 +5,6 @@ using System.Text;
 using System.IO;
 using System.Security.Cryptography;
 using System.Xml;
-using Ionic.Zip;
 
 namespace SoundManager
 {
@@ -16,6 +15,7 @@ namespace SoundManager
     /// NOTE ABOUT FAIR USE: This class implements a decryption routine, mandatory for interoperability with this file format.
     /// We use the same approach as with the RAR file format, only allowing to unpack proprietary files supplied by the user.
     /// Generating proprietary files is not implemented here, requiring to purchase the original proprietary sotfware.
+    /// Modified by ayanami770 (2026): zip handling ported from Ionic.Zip to SmNative - CDDL-1.0
     /// </remarks>
     static class SoundArchiveProprietary
     {
@@ -52,15 +52,9 @@ namespace SoundManager
         {
             string tempZipFile = Path.GetTempFileName();
 
-            // Decrypt Zip archive
-            try
+            // Decrypt Zip archive, unless already decrypted
+            if (!SmZipReader.Check(infile))
             {
-                // Already decrypted?
-                ZipFile.CheckZip(infile);
-            }
-            catch (ZipException)
-            {
-                // Decrypt Zip archive
                 using (FileStream encryptedZipStream = new FileStream(infile, FileMode.Open))
                 {
                     using (AesStream decryptingZipStream = new AesStream(encryptedZipStream, zipAesKey, zipAesIv))
@@ -75,16 +69,15 @@ namespace SoundManager
                 }
             }
 
-            using (ZipFile inZip = ZipFile.Read(infile))
+            using (SmZipReader inZip = new SmZipReader(infile))
             {
-                if (inZip.ContainsEntry(MetadataFile))
+                int metadataEntry = inZip.FindEntry(MetadataFile, true);
+                if (metadataEntry >= 0)
                 {
                     // Decrypt XML metadata file
                     string metadataXmlString;
-                    using (MemoryStream encMetadataFileStream = new MemoryStream())
+                    using (MemoryStream encMetadataFileStream = new MemoryStream(inZip.ExtractToBytes(metadataEntry)))
                     {
-                        inZip.First(entry => entry.FileName.ToLowerInvariant() == MetadataFile).Extract(encMetadataFileStream);
-                        encMetadataFileStream.Seek(0, 0);
                         byte[] metadataEncrypted = Convert.FromBase64String(new StreamReader(encMetadataFileStream).ReadToEnd().Replace(' ', '+'));
                         using (MemoryStream encryptedXmlStream = new MemoryStream(metadataEncrypted))
                         {
@@ -146,22 +139,19 @@ namespace SoundManager
                     }
 
                     // Keep unused source files just in case
-                    foreach (ZipEntry entry in inZip.Entries)
-                        if (!filesCopied.Contains(entry.FileName))
-                            filesToCopy["_unused_" + entry.FileName] = entry.FileName;
+                    foreach (string entryName in inZip.Entries)
+                        if (!filesCopied.Contains(entryName))
+                            filesToCopy["_unused_" + entryName] = entryName;
 
                     // Generate SoundManager sound archive file
-                    using (ZipFile outZip = new ZipFile())
+                    using (SmZipWriter outZip = new SmZipWriter())
                     {
                         foreach (var filePair in filesToCopy)
                         {
-                            MemoryStream fileInMemory = new MemoryStream();
-                            ZipEntry sourceEntry = inZip.FirstOrDefault(entry => entry.FileName.ToLowerInvariant() == filePair.Value.ToLowerInvariant());
-                            if (sourceEntry != null) // Metadata may reference files that do not exist in the source archive, skip them
+                            int sourceEntry = inZip.FindEntry(filePair.Value, true);
+                            if (sourceEntry >= 0) // Metadata may reference files that do not exist in the source archive, skip them
                             {
-                                sourceEntry.Extract(fileInMemory);
-                                fileInMemory.Seek(0, 0);
-                                outZip.AddEntry(filePair.Key, fileInMemory);
+                                outZip.AddEntry(filePair.Key, inZip.ExtractToBytes(sourceEntry));
                             }
                         }
                         outZip.AddEntry(SchemeMeta.SchemeInfoFileName, SchemeMeta.SerializeSchemeInfo(schemeName, schemeAuthor, schemeComment));

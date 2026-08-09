@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Ionic.Zip;
 using System.IO;
 using SharpTools;
 using System.Windows.Forms;
@@ -12,6 +11,9 @@ namespace SoundManager
     /// <summary>
     /// Sound archive file import/export routines
     /// </summary>
+    /// <remarks>
+    /// Modified by ayanami770 (2026): zip handling ported from Ionic.Zip to SmNative - CDDL-1.0
+    /// </remarks>
     static class SoundArchive
     {
         private static readonly string FileIconPath = Path.Combine(RuntimeConfig.AppFolder, "SoundScheme.ico");
@@ -20,26 +22,23 @@ namespace SoundManager
         public const string FileExtension = "ths";
 
         /// <summary>
-        /// Try extracting a file from the provided ZipFile
+        /// Try extracting a file from the provided zip archive
         /// </summary>
-        /// <param name="zip">ZipFile to extract from</param>
+        /// <param name="zip">Zip archive to extract from</param>
         /// <param name="fileName">File name to extract</param>
         /// <param name="outputDir">Output directory. Existing files are overwritten silently.</param>
         /// <param name="outputFileName">Output file name, if different from file name in archive</param>
         /// <returns>TRUE if the file was found and extracted</returns>
-        private static bool TryExtract(ZipFile zip, string fileName, string outputDir, string outputFileName = null)
+        private static bool TryExtract(SmZipReader zip, string fileName, string outputDir, string outputFileName = null)
         {
-            if (zip.ContainsEntry(fileName))
+            int entryIndex = zip.FindEntry(fileName, true);
+            if (entryIndex >= 0)
             {
                 string extractedFile = Path.Combine(outputDir, fileName);
-                string extractedFileTmp = extractedFile + ".tmp";
-                File.Delete(extractedFileTmp);
 
                 try
                 {
-                    zip.Entries
-                        .First(entry => entry.FileName == fileName)
-                        .Extract(outputDir, ExtractExistingFileAction.OverwriteSilently);
+                    zip.ExtractToFile(entryIndex, extractedFile);
                 }
                 catch (IOException e)
                 {
@@ -83,7 +82,7 @@ namespace SoundManager
             }
 
             // Import sound archive
-            using (ZipFile zip = ZipFile.Read(zipfile))
+            using (SmZipReader zip = new SmZipReader(zipfile))
             {
                 foreach (SoundEvent soundEvent in SoundEvent.GetAll())
                 {
@@ -114,17 +113,17 @@ namespace SoundManager
         /// <param name="zipfile">Output Zip file</param>
         public static void Export(string zipfile)
         {
-            using (ZipFile zip = new ZipFile())
+            using (SmZipWriter zip = new SmZipWriter())
             {
                 foreach (SoundEvent soundEvent in SoundEvent.GetAll())
                 {
                     if (File.Exists(soundEvent.FilePath))
-                        zip.AddFile(soundEvent.FilePath, "");
+                        zip.AddFile(soundEvent.FilePath);
                 }
                 if (File.Exists(SchemeMeta.SchemeImageFilePath))
-                    zip.AddFile(SchemeMeta.SchemeImageFilePath, "");
+                    zip.AddFile(SchemeMeta.SchemeImageFilePath);
                 if (File.Exists(SchemeMeta.SchemeInfoFilePath))
-                    zip.AddFile(SchemeMeta.SchemeInfoFilePath, "");
+                    zip.AddFile(SchemeMeta.SchemeInfoFilePath);
                 zip.Save(zipfile);
             }
         }

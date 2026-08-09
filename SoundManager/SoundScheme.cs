@@ -3,7 +3,6 @@ using System.IO;
 using System.Media;
 using System.Collections.Generic;
 using Microsoft.Win32;
-using NAudio.Wave;
 using SharpTools;
 using System.Security.AccessControl;
 using System.Security.Principal;
@@ -13,6 +12,9 @@ namespace SoundManager
     /// <summary>
     /// Manage the SoundManager Windows sound scheme
     /// </summary>
+    /// <remarks>
+    /// Modified by ayanami770 (2026): audio conversion ported from NAudio to SmNative (Media Foundation) - CDDL-1.0
+    /// </remarks>
     public class SoundScheme
     {
         private static readonly string SchemeManager = RuntimeConfig.AppInternalName;
@@ -271,11 +273,11 @@ namespace SoundManager
             {
                 if (File.Exists(soundFile))
                 {
-                    MediaFoundationReader soundReader = null;
+                    TimeSpan soundDuration = TimeSpan.Zero;
                     if (CanConvertSounds)
-                        soundReader = new MediaFoundationReader(soundFile);
+                        soundDuration = SmAudio.GetDuration(soundFile);
 
-                    if (CanConvertSounds && soundReader.TotalTime > TimeSpan.FromSeconds(30))
+                    if (CanConvertSounds && soundDuration > TimeSpan.FromSeconds(30))
                     {
                         throw new InvalidOperationException(Translations.Get("sound_file_too_long"));
                     }
@@ -295,17 +297,14 @@ namespace SoundManager
                             if (CanConvertSounds)
                             {
                                 // Transcode non-native input file formats into WAV format that Windows can play
-                                using (WaveStream pcm = WaveFormatConversionStream.CreatePcmStream(soundReader))
+                                try
                                 {
-                                    try
-                                    {
-                                        WaveFileWriter.CreateWaveFile(soundEvent.FilePath, pcm);
-                                    }
-                                    catch
-                                    {
-                                        File.Delete(soundEvent.FilePath);
-                                        throw;
-                                    }
+                                    SmAudio.TranscodeToWav(soundFile, soundEvent.FilePath);
+                                }
+                                catch
+                                {
+                                    File.Delete(soundEvent.FilePath);
+                                    throw;
                                 }
                             }
                             else
@@ -315,8 +314,6 @@ namespace SoundManager
                             }
                         }
                     }
-                    if (soundReader != null)
-                        soundReader.Dispose();
                 }
                 else File.Delete(soundEvent.FilePath);
             }

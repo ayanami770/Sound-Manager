@@ -17,8 +17,35 @@ namespace SoundManager
     /// Although built-in startup sound can be played on Windows 10+, it is not modifiable and other events are still missing.
     /// This class is NOT useful on Windows XP/Vista/7 and not compatible with Windows XP (No ShutdownBlockReason API, older Task Scheduler API).
     /// </summary>
+    /// <remarks>
+    /// Modified by ayanami770 (2026): Task Scheduler COM API accessed through late binding
+    /// instead of a build-time type library reference, so building requires no Windows SDK - CDDL-1.0
+    /// </remarks>
     public class BgSoundPlayer : Form
     {
+        // Task Scheduler 2.0 COM API constants (taskschd.h)
+        private const int TASK_TRIGGER_LOGON = 9;           // _TASK_TRIGGER_TYPE2
+        private const int TASK_ACTION_EXEC = 0;             // _TASK_ACTION_TYPE
+        private const int TASK_CREATE_OR_UPDATE = 6;        // _TASK_CREATION
+        private const int TASK_LOGON_INTERACTIVE_TOKEN = 3; // _TASK_LOGON_TYPE
+        private const uint HRESULT_FILE_NOT_FOUND = 0x80070002u;
+
+        /// <summary>
+        /// Instantiate the Task Scheduler 2.0 COM service for late-bound calls
+        /// </summary>
+        private static dynamic NewTaskService()
+        {
+            return Activator.CreateInstance(Type.GetTypeFromProgID("Schedule.Service"));
+        }
+
+        /// <summary>
+        /// Check whether a COMException means "file not found", which late-bound
+        /// Task Scheduler calls may surface instead of FileNotFoundException
+        /// </summary>
+        private static bool IsFileNotFound(COMException e)
+        {
+            return (uint)e.ErrorCode == HRESULT_FILE_NOT_FOUND;
+        }
         private static readonly string LastBootFile = Path.Combine(RuntimeConfig.LocalDataFolder, "LastBootTime.ini");
         private static readonly RegistryKey SystemStartup = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
         private static readonly RegistryKey StartupDelay = Registry.CurrentUser.CreateSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Serialize");
@@ -51,11 +78,12 @@ namespace SoundManager
 
             try
             {
-                TaskScheduler.TaskScheduler ts = new TaskScheduler.TaskScheduler();
+                dynamic ts = NewTaskService();
                 ts.Connect();
                 taskPresent = (ts.GetFolder("\\").GetTask(ScheduledTaskNameCurrentUser) != null);
             }
             catch (FileNotFoundException) { /* Task not present */ }
+            catch (COMException e) { if (!IsFileNotFound(e)) throw; /* Task not present */ }
             catch (UnauthorizedAccessException) { /* Task is present but wrong permissions */ }
 
             return registryKeyPresent || taskPresent;
@@ -68,7 +96,7 @@ namespace SoundManager
         /// <param name="interactive">TRUE when user changes the setting interactively, FALSE during setup/uninstall</param>
         public static void SetRegisteredForStartup(bool registered, bool interactive = false)
         {
-            TaskScheduler.TaskScheduler ts = new TaskScheduler.TaskScheduler();
+            dynamic ts = NewTaskService();
             ts.Connect();
 
             if (registered)
@@ -80,10 +108,10 @@ namespace SoundManager
                 //Create scheduled task - Runs sooner on logon compared to registry keys
 
                 string taskSecurityDescriptor = String.Concat("O:", SidCurrentUser, "D:(A;;FA;;;", SidCurrentUser, ")");
-                TaskScheduler.ITaskDefinition task = ts.NewTask(0);
-                TaskScheduler.ILogonTrigger trigger = (TaskScheduler.ILogonTrigger)task.Triggers.Create(TaskScheduler._TASK_TRIGGER_TYPE2.TASK_TRIGGER_LOGON);
+                dynamic task = ts.NewTask(0);
+                dynamic trigger = task.Triggers.Create(TASK_TRIGGER_LOGON);
                 trigger.UserId = SidCurrentUser;
-                TaskScheduler.IExecAction action = (TaskScheduler.IExecAction)task.Actions.Create(TaskScheduler._TASK_ACTION_TYPE.TASK_ACTION_EXEC);
+                dynamic action = task.Actions.Create(TASK_ACTION_EXEC);
                 action.Path = StartupCommandExe;
                 action.Arguments = RuntimeConfig.CmdArgumentBgSoundPlayer;
                 task.Settings.DisallowStartIfOnBatteries = false;
@@ -96,10 +124,10 @@ namespace SoundManager
                     ts.GetFolder("\\").RegisterTaskDefinition(
                         ScheduledTaskNameCurrentUser,
                         task,
-                        (int)TaskScheduler._TASK_CREATION.TASK_CREATE_OR_UPDATE,
+                        TASK_CREATE_OR_UPDATE,
                         null,
                         null,
-                        TaskScheduler._TASK_LOGON_TYPE.TASK_LOGON_INTERACTIVE_TOKEN,
+                        TASK_LOGON_INTERACTIVE_TOKEN,
                         taskSecurityDescriptor
                     );
                 }
@@ -116,6 +144,7 @@ namespace SoundManager
                 //Remove scheduled task for the current user
                 try { ts.GetFolder("\\").DeleteTask(ScheduledTaskNameCurrentUser, 0); }
                 catch (FileNotFoundException) { /* Task was not present */ }
+                catch (COMException e) { if (!IsFileNotFound(e)) throw; /* Task was not present */ }
                 catch (UnauthorizedAccessException) /* Insufficient privileges */
                 {
                     //Should not happen since tasks are per-user, but better warn the user.
@@ -126,10 +155,13 @@ namespace SoundManager
                 //Also remove tasks for other users when performing Uninstall as Admin
                 if (!interactive && FileSystemAdmin.IsAdmin())
                 {
-                    TaskScheduler.IRegisteredTaskCollection tasks = ts.GetFolder("\\").GetTasks(0);
+                    dynamic tasks = ts.GetFolder("\\").GetTasks(0);
                     for (int i = 1; i <= tasks.Count; i++)
-                        if (tasks[i].Path.StartsWith("\\" + ScheduledTaskBaseName))
-                            ts.GetFolder("\\").DeleteTask(tasks[i].Path.Substring(1), 0);
+                    {
+                        string taskPath = tasks[i].Path;
+                        if (taskPath.StartsWith("\\" + ScheduledTaskBaseName))
+                            ts.GetFolder("\\").DeleteTask(taskPath.Substring(1), 0);
+                    }
                 }
             }
 
@@ -140,6 +172,7 @@ namespace SoundManager
             //Attempt to remove generic scheduled task set by previous versions of this program
             try { ts.GetFolder("\\").DeleteTask(RuntimeConfig.AppInternalName, 0); }
             catch (FileNotFoundException) { /* Task was not present */ }
+            catch (COMException e) { if (!IsFileNotFound(e)) throw; /* Task was not present */ }
             catch (UnauthorizedAccessException) { /* Insufficient privileges */ }
         }
 

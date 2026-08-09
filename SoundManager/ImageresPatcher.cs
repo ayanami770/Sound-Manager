@@ -14,13 +14,14 @@ namespace SoundManager
     /// <remarks>
     /// https://www.sevenforums.com/tutorials/63398-startup-sound-change-windows-7-a.html
     /// https://answers.microsoft.com/en-us/windows/forum/all/workaround-for-changing-the-windows-1011-startup/b15dd438-42c7-471c-bc86-2e5fb0fa4037
+    /// Modified by ayanami770 (2026): x64 process support - the Sysnative alias only exists for 32-bit processes - CDDL-1.0
     /// </remarks>
     static class ImageresPatcher
     {
         private const ushort WaveLocaleNumber = 1033;
         private static readonly uint WaveResourceNumber = WindowsVersion.IsVista ? (uint)5051 : (uint)5080;
 
-        private static readonly string System32 = Environment.GetFolderPath(Environment.SpecialFolder.Windows) + (Environment.Is64BitOperatingSystem ? @"\Sysnative\" : @"\System32\");
+        private static readonly string System32 = Environment.GetFolderPath(Environment.SpecialFolder.Windows) + (Environment.Is64BitOperatingSystem && !Environment.Is64BitProcess ? @"\Sysnative\" : @"\System32\");
         private static readonly string Imageres = System32 + "imageres.dll";
         private static readonly string ImageresBak = Imageres + ".bak";
         private static readonly string ImageresOld = Imageres + ".old";

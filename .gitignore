@@ -3,6 +3,8 @@
 /DownloadSchemes/bin/*
 /SoundManager/obj/*
 /SoundManager/bin/*
+/SmNative/SmNative.dll
+/SmNative/test.exe
 
 Thumbs.db
 ehthumbs.db
