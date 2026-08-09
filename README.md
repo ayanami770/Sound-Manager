@@ -1,9 +1,21 @@
 ![SoundManager](Images/logo-en.png)
 
-SoundManager is free software that makes it easy to create and share Windows sound schemes. All Windows versions from Windows XP SP3 to Windows 11 are supported. Requires [.NET 4.0](http://www.microsoft.com/en-us/download/details.aspx?id=17718) or greater.
+SoundManager is free software that makes it easy to create and share Windows sound schemes. This fork supports 64-bit Windows 7 SP1 through Windows 11. Requires [.NET 4.0](http://www.microsoft.com/en-us/download/details.aspx?id=17718) or greater; on Windows 7/8.1, the [Universal C Runtime update](https://support.microsoft.com/kb/2999226) is also required.
 
 * 💾 **Download:** Have a look at the [releases section](https://github.com/ORelio/Sound-Manager/releases) to get a build
 * 📁 **Sound schemes:** Check out the [sound schemes repository](https://github.com/ORelio/Sound-Manager-Schemes)
+
+## About this fork
+
+This is a fork of [ORelio/Sound-Manager](https://github.com/ORelio/Sound-Manager) with the following changes:
+
+* 64-bit (x64) build — support for 32-bit systems and Windows XP is dropped
+* The bundled third-party libraries (Ionic.Zip, NAudio) are replaced by SmNative,
+  a self-contained C99 library housed in [`SmNative/`](SmNative/): zip archive
+  handling with its own DEFLATE implementation, and audio conversion through
+  Windows Media Foundation
+* Building no longer requires Visual Studio or the Windows SDK
+  (see [Build instructions](#build-instructions))
 
 ## Overview
 
@@ -89,39 +101,39 @@ SoundManager also allows patching the startup sound on Windows 8 and greater. Wh
 
 ## Build instructions
 
-In order to maintain support for Windows XP SP3, SoundManager targets .NET Framework v4.0 and builds under Visual Studio 2010. If you want to build without support for Windows XP, you should be able to build by importing the project into the latest version of [Visual Studio Community](https://visualstudio.microsoft.com/vs/community/). The following instructions detail how to build with XP support.
+This fork targets .NET Framework v4.0 (x64) and builds with the MSBuild bundled inside the .NET Framework itself — no Visual Studio or Windows SDK required. Importing the solution into a recent [Visual Studio](https://visualstudio.microsoft.com/vs/community/) also works.
 
-For proper support of newer operating systems such as Windows 10, SoundManager needs APIs such as [Task Scheduler 2.0](https://learn.microsoft.com/en-us/windows/win32/taskschd/task-scheduler-2-0-interfaces) and [ShutdownBlockReason](https://devblogs.microsoft.com/oldnewthing/20120614-00/?p=7373), which aren't present on XP, so building under Windows XP will not work. Building was tested successfully under Windows Vista, 7, 8, 10 and 11 using Visual Studio 2010.
+### Compiling the C# solution
 
-### Setting up Visual Studio
+From the project folder (where `README.md` and `SoundManager.sln` are housed):
 
-1. Download [Visual Studio 2010 Express](https://archive.org/details/vs-2010-express-1). This is the free version of Visual Studio 2010 that includes the bare minimum components needed to get started using Visual Studio.
-2. Mount or extract the downloaded ISO file: `VS2010Express1.iso`
-  * On Windows 8 or greater, opening the ISO file in file Explorer will automatically mount it as a virtual DVD drive.
-  * On earlier Windows versions, software such as [WinCDEmu](https://wincdemu.sysprogs.org/) or [Daemon Tools](https://www.daemon-tools.cc/products/dtLite) can mount the ISO file.
-  * Alternatively, you can use a file archive utility such as [7-Zip](https://7-zip.org/) to extract the ISO file instead of mounting it.
-4. Open the `VCSExpress` folder inside the virtual DVD drive or extracted ISO file and launch `setup.exe`
-5. Follow the on-screen instructions to install Visual C# 2010.
+````
+C:\Windows\Microsoft.NET\Framework64\v4.0.30319\MSBuild.exe SoundManager.sln /p:Configuration=Release /p:Platform=x64
+````
 
-### Compiling
+On machines without the .NET reference assemblies installed (no Visual Studio), append:
 
-This section assumes you already have the `Sound-Manager` git repository cloned or [manually downloaded](https://github.com/ORelio/Sound-Manager/archive/refs/heads/master.zip). In the following instructions, "project folder" refers to the main folder of the `Sound-Manager` repository, where `README.md` and `SoundManager.sln` are housed.
+````
+"/p:FrameworkPathOverride=C:\Windows\Microsoft.NET\Framework64\v4.0.30319"
+````
 
-1. Navigate to the project folder and open `SoundManager.sln` file
-  * If your system isn't configured to [show file extensions](https://www.thewindowsclub.com/show-file-extensions-in-windows), you won't see the `.sln` part of the filename.
-  * If VS 2010 doesn't open automatically, select Visual C# 2010 in the "open with" dialog.
-2. Once the project is open, set the build target to `Release` instead of `Debug` in the dropdown menu next to the Build button. You can leave `Debug` while making changes in the code and using the debugger in Visual Studio.
-3. Hit `Shift+Control+B` to build the entire `SoundManager` solution. This should only take a few seconds to compile.
-4. Assuming there were no errors during compilation, hit `Alt+F4` to close VS 2010.
-5. If everything worked properly, you should get:
-  * `SoundManager.exe` in `<ProjectFolder>\SoundManager\bin\Release`
-  * `DownloadSchemes.exe` in `<ProjectFolder>\DownloadSchemes\bin\Release`
-6. Copy the following items into `<ProjectFolder>\SoundManager\bin\Release`:
-  * `<ProjectFolder>\SoundManager\Lang`
-  * `<ProjectFolder>\UserManual\Readme-En.txt`
-  * `<ProjectFolder>\UserManual\Readme-Fr.txt`
-  * `<ProjectFolder>\DownloadSchemes\bin\Release\DownloadSchemes.exe`
-7. Finally, check that everything's working by launching `<ProjectFolder> \SoundManager\bin\Release\SoundManager.exe`.
+If everything worked properly, you should get:
+
+* `SoundManager.exe` and `SmNative.dll` in `<ProjectFolder>\SoundManager\bin\Release`
+* `DownloadSchemes.exe` in `<ProjectFolder>\DownloadSchemes\bin\Release`
+
+Then copy the following items into `<ProjectFolder>\SoundManager\bin\Release`:
+
+* `<ProjectFolder>\SoundManager\Lang`
+* `<ProjectFolder>\UserManual\Readme-En.txt`
+* `<ProjectFolder>\UserManual\Readme-Fr.txt`
+* `<ProjectFolder>\DownloadSchemes\bin\Release\DownloadSchemes.exe`
+
+Finally, check that everything's working by launching `<ProjectFolder>\SoundManager\bin\Release\SoundManager.exe`.
+
+### Rebuilding SmNative.dll
+
+The native library `SoundManager\SmNative.dll` is committed to the repository, so this step is only needed after changing the C sources in `SmNative\`. Install [MSYS2](https://www.msys2.org/) with the CLANG64 toolchain (`pacman -S mingw-w64-clang-x86_64-clang`), then run `SmNative\build.cmd`. This builds `SmNative.dll` and the `test.exe` test harness, and copies the DLL into the SoundManager project. Run `test.exe selftest <tmpdir>` to check the library.
 
 ## License
 
