@@ -14,14 +14,21 @@ This is a fork of [ORelio/Sound-Manager](https://github.com/ORelio/Sound-Manager
   a self-contained C99 library housed in [`SmNative/`](SmNative/): zip archive
   handling with its own DEFLATE implementation, and audio conversion through
   Windows Media Foundation
+* The WinForms GUI is replaced by a `make menuconfig`-style terminal UI
+  (powered by [Universal-TUI](https://github.com/ayanami770/Universal-TUI),
+  referenced as a git submodule) plus CLI subcommands; the separate
+  DownloadSchemes.exe became the `download` command
 * Building no longer requires Visual Studio or the Windows SDK
   (see [Build instructions](#build-instructions))
 
 ## Overview
 
-SoundManager allows editing the current sound scheme, as well as defining metadata:
-
-![SoundManager main UI](Images/gui-scheme-en.png)
+Run `SoundManager.exe` with no arguments to open the menuconfig-style
+configuration UI: sound events (enable/disable and assigned files), scheme
+metadata, and all settings, edited from the terminal with full keyboard, mouse
+and UTF-8 support. Everything else is a CLI subcommand — run
+`SoundManager help` for the list (`set`, `play`, `import`, `export`,
+`download`, ...).
 
 Main features are the following:
 
@@ -103,6 +110,18 @@ SoundManager also allows patching the startup sound on Windows 8 and greater. Wh
 
 This fork targets .NET Framework v4.0 (x64) and builds with the MSBuild bundled inside the .NET Framework itself — no Visual Studio or Windows SDK required. Importing the solution into a recent [Visual Studio](https://visualstudio.microsoft.com/vs/community/) also works.
 
+### Getting the source
+
+Clone with submodules — the TUI engine lives in the
+[Universal-TUI](https://github.com/ayanami770/Universal-TUI) submodule at
+`SmNative\utui`:
+
+````
+git clone --recurse-submodules https://github.com/ayanami770/Sound-Manager.git
+````
+
+For an existing clone, run `git submodule update --init` instead.
+
 ### Compiling the C# solution
 
 From the project folder (where `README.md` and `SoundManager.sln` are housed):
@@ -120,20 +139,20 @@ On machines without the .NET reference assemblies installed (no Visual Studio), 
 If everything worked properly, you should get:
 
 * `SoundManager.exe` and `SmNative.dll` in `<ProjectFolder>\SoundManager\bin\Release`
-* `DownloadSchemes.exe` in `<ProjectFolder>\DownloadSchemes\bin\Release`
+* `SoundManagerBg.exe` in `<ProjectFolder>\SoundManagerBg\bin\Release`
 
 Then copy the following items into `<ProjectFolder>\SoundManager\bin\Release`:
 
 * `<ProjectFolder>\SoundManager\Lang`
 * `<ProjectFolder>\UserManual\Readme-En.txt`
 * `<ProjectFolder>\UserManual\Readme-Fr.txt`
-* `<ProjectFolder>\DownloadSchemes\bin\Release\DownloadSchemes.exe`
+* `<ProjectFolder>\SoundManagerBg\bin\Release\SoundManagerBg.exe`
 
-Finally, check that everything's working by launching `<ProjectFolder>\SoundManager\bin\Release\SoundManager.exe`.
+Finally, check that everything's working by launching `<ProjectFolder>\SoundManager\bin\Release\SoundManager.exe` from a terminal.
 
 ### Rebuilding SmNative.dll
 
-The native library `SoundManager\SmNative.dll` is committed to the repository, so this step is only needed after changing the C sources in `SmNative\`. Install [MSYS2](https://www.msys2.org/) with the CLANG64 toolchain (`pacman -S mingw-w64-clang-x86_64-clang`), then run `SmNative\build.cmd`. This builds `SmNative.dll` and the `test.exe` test harness, and copies the DLL into the SoundManager project. Run `test.exe selftest <tmpdir>` to check the library.
+The native library `SoundManager\SmNative.dll` is committed to the repository, so this step is only needed after changing the C sources in `SmNative\` or updating the Universal-TUI submodule. Install [MSYS2](https://www.msys2.org/) with the CLANG64 toolchain (`pacman -S mingw-w64-clang-x86_64-clang`), make sure the submodule is initialized, then run `SmNative\build.cmd`. This builds `SmNative.dll` and the `test.exe` test harness, and copies the DLL into the SoundManager project. Run `test.exe selftest <tmpdir>` to check the library.
 
 ## License
 
