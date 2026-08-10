@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x64</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{3C64EAF2-9E19-4CF2-8AC0-1E318BA26305}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>SoundManager</RootNamespace>
+    <AssemblyName>SoundManagerBg</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64' ">
+    <PlatformTarget>x64</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x64' ">
+    <PlatformTarget>x64</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Management" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="BgSoundPlayer.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ProgramBg.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="..\SoundManager\AccountProperties.cs"><Link>AccountProperties.cs</Link></Compile>
+    <Compile Include="..\SoundManager\BgSoundPlayerSetup.cs"><Link>BgSoundPlayerSetup.cs</Link></Compile>
+    <Compile Include="..\SoundManager\ExceptionLogger.cs"><Link>ExceptionLogger.cs</Link></Compile>
+    <Compile Include="..\SoundManager\FileRecycler.cs"><Link>FileRecycler.cs</Link></Compile>
+    <Compile Include="..\SoundManager\FileSystemAdmin.cs"><Link>FileSystemAdmin.cs</Link></Compile>
+    <Compile Include="..\SoundManager\IconExtractor.cs"><Link>IconExtractor.cs</Link></Compile>
+    <Compile Include="..\SoundManager\ImageresPatcher.cs"><Link>ImageresPatcher.cs</Link></Compile>
+    <Compile Include="..\SoundManager\INIFile.cs"><Link>INIFile.cs</Link></Compile>
+    <Compile Include="..\SoundManager\NativeResource.cs"><Link>NativeResource.cs</Link></Compile>
+    <Compile Include="..\SoundManager\Privilege20\NativeMethods.cs"><Link>Privilege20\NativeMethods.cs</Link></Compile>
+    <Compile Include="..\SoundManager\Privilege20\Privilege.cs"><Link>Privilege20\Privilege.cs</Link></Compile>
+    <Compile Include="..\SoundManager\Privilege20\SafeTokenHandle.cs"><Link>Privilege20\SafeTokenHandle.cs</Link></Compile>
+    <Compile Include="..\SoundManager\RuntimeConfig.cs"><Link>RuntimeConfig.cs</Link></Compile>
+    <Compile Include="..\SoundManager\SchemeMeta.cs"><Link>SchemeMeta.cs</Link></Compile>
+    <Compile Include="..\SoundManager\Settings.cs"><Link>Settings.cs</Link></Compile>
+    <Compile Include="..\SoundManager\ShellFileType.cs"><Link>ShellFileType.cs</Link></Compile>
+    <Compile Include="..\SoundManager\SmNative.cs"><Link>SmNative.cs</Link></Compile>
+    <Compile Include="..\SoundManager\SoundEvent.cs"><Link>SoundEvent.cs</Link></Compile>
+    <Compile Include="..\SoundManager\SoundScheme.cs"><Link>SoundScheme.cs</Link></Compile>
+    <Compile Include="..\SoundManager\SystemStartupSound.cs"><Link>SystemStartupSound.cs</Link></Compile>
+    <Compile Include="..\SoundManager\Translations.cs"><Link>Translations.cs</Link></Compile>
+    <Compile Include="..\SoundManager\WindowManager.cs"><Link>WindowManager.cs</Link></Compile>
+    <Compile Include="..\SoundManager\WindowsParameters.cs"><Link>WindowsParameters.cs</Link></Compile>
+    <Compile Include="..\SoundManager\WindowsVersion.cs"><Link>WindowsVersion.cs</Link></Compile>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

@@ -6,7 +6,7 @@ using System.Net;
 using SharpTools;
 using System.IO;
 
-namespace DownloadSchemes
+namespace SoundManager
 {
     /// <summary>
     /// Minimal class for interacting with GitHub API

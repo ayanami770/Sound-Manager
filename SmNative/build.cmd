@@ -9,15 +9,18 @@ if not exist "%CLANG%" (
 )
 cd /d "%~dp0"
 
+rem utui.c/utui.h are vendored from https://github.com/ayanami770/Universal-TUI
+rem (branch utf8-longstr, Apache-2.0, see LICENSE-utui.txt)
+
 echo Building SmNative.dll...
 "%CLANG%" -std=c99 -O2 -Wall -Wextra -DSMNATIVE_BUILD -shared ^
-    -o SmNative.dll crc32.c inflate.c deflate.c zip.c audio.c ^
+    -o SmNative.dll crc32.c inflate.c deflate.c zip.c audio.c utui.c smtui.c ^
     -lole32 -Wl,--no-undefined
 if errorlevel 1 exit /b 1
 
 echo Building test.exe...
 "%CLANG%" -std=c99 -O2 -Wall -Wextra -DSMNATIVE_BUILD -municode ^
-    -o test.exe test.c crc32.c inflate.c deflate.c zip.c audio.c ^
+    -o test.exe test.c crc32.c inflate.c deflate.c zip.c audio.c utui.c smtui.c ^
     -lole32
 if errorlevel 1 exit /b 1
 

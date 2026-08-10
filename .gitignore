@@ -3,6 +3,8 @@
 /DownloadSchemes/bin/*
 /SoundManager/obj/*
 /SoundManager/bin/*
+/SoundManagerBg/obj/*
+/SoundManagerBg/bin/*
 /SmNative/SmNative.dll
 /SmNative/test.exe
 
