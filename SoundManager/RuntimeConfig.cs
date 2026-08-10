@@ -106,6 +106,11 @@ namespace SoundManager
         public static readonly string SoundManagerExe = Path.Combine(AppFolder, AppInternalName + ".exe");
 
         /// <summary>
+        /// Path to the background sound player executable (SoundManagerBg.exe)
+        /// </summary>
+        public static readonly string SoundManagerBgExe = Path.Combine(AppFolder, AppInternalName + "Bg.exe");
+
+        /// <summary>
         /// File name of the Sound Scheme icon (for file types association)
         /// </summary>
         public const string SoundSchemeIcon = "SoundScheme.ico";

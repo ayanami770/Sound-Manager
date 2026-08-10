@@ -31,6 +31,8 @@ extern "C" {
 #define SMN_E_AUDIO_INIT  -10 /* Media Foundation unavailable */
 #define SMN_E_AUDIO_OPEN  -11 /* cannot open or decode source media file */
 #define SMN_E_AUDIO_WRITE -12 /* cannot write output WAV file */
+#define SMN_E_TUI_NOTTY   -20 /* stdin/stdout is not an interactive console */
+#define SMN_E_TUI_SPEC    -21 /* malformed TUI spec string */
 
 /* --- Zip reading --- */
 
@@ -84,6 +86,17 @@ SMN_API long long smaudio_duration_100ns(const wchar_t *path);
 /* Decode any Media Foundation supported format (MP3, AAC, WMA, WAV, ...)
  * and write a PCM WAV file. */
 SMN_API int smaudio_transcode_wav(const wchar_t *srcPath, const wchar_t *dstPath);
+
+/* --- Configuration TUI (menuconfig style, vendored Universal-TUI) --- */
+
+/* Run the interactive configuration editor. specUtf8 describes the tree as
+ * UTF-8 KEY=VALUE lines (see smtui.c); the edited values are serialized into
+ * outUtf8 using the same format. Returns 1 if the user saved, 0 if not, or a
+ * negative SMN_E_* error. */
+SMN_API int smtui_run(const char *specUtf8, char *outUtf8, int outCap);
+
+/* Headless internal test of spec parsing / tree building (0 = pass). */
+SMN_API int smtui_selftest(void);
 
 /* --- Internal shared helpers (not exported) --- */
 #ifdef SMNATIVE_BUILD

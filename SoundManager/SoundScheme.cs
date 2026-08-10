@@ -17,6 +17,11 @@ namespace SoundManager
     /// </remarks>
     public class SoundScheme
     {
+        /// <summary>
+        /// Set to TRUE while an interactive configuration UI is open, formerly FormMain.IsOpen
+        /// </summary>
+        public static bool UiOpen = false;
+
         private static readonly string SchemeManager = RuntimeConfig.AppInternalName;
         private const string SchemeDefault = ".Default";
         private const string SchemeCurrent = ".Current";
@@ -118,8 +123,8 @@ namespace SoundManager
 
             foreach (SoundEvent soundEvent in SoundEvent.GetAll())
             {
-                // Temporarily disable "Select" while FormMain is open, regardless of Disabled status
-                bool tempDisable = (soundEvent.Type == SoundEvent.EventType.Select && FormMain.IsOpen);
+                // Temporarily disable "Select" while the configuration UI is open, regardless of Disabled status
+                bool tempDisable = (soundEvent.Type == SoundEvent.EventType.Select && UiOpen);
 
                 foreach (string registryKey in soundEvent.RegistryKeys)
                 {

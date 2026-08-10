@@ -246,6 +246,13 @@ static void selftest(const wchar_t *tmpdir)
     long long badDur = smaudio_duration_100ns(njpath);
     check(badDur < 0, "non-media duration fails cleanly");
 
+    printf("[tui spec roundtrip]\n");
+    {
+        int tres = smtui_selftest();
+        printf("      smtui_selftest = %d\n", tres);
+        check(tres == 0, "tui spec parse/build/collect");
+    }
+
     free(text);
     free(rnd);
     printf("\n%s (%d failures)\n", failures == 0 ? "ALL TESTS PASSED" : "TESTS FAILED", failures);

@@ -6,7 +6,7 @@
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{9EAE6B62-AADA-43C6-ADAB-4A48A46DAF6E}</ProjectGuid>
-    <OutputType>WinExe</OutputType>
+    <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>SoundManager</RootNamespace>
     <AssemblyName>SoundManager</AssemblyName>
@@ -53,20 +53,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BgSoundPlayerSetup.cs" />
+    <Compile Include="Cli.cs" />
     <Compile Include="ExceptionLogger.cs" />
     <Compile Include="FileRecycler.cs" />
     <Compile Include="FileSystemAdmin.cs" />
-    <Compile Include="BgSoundPlayer.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="FormMain.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="FormMain.Designer.cs">
-      <DependentUpon>FormMain.cs</DependentUpon>
-    </Compile>
+    <Compile Include="GitHubApi.cs" />
     <Compile Include="IconExtractor.cs" />
     <Compile Include="ImageresPatcher.cs" />
+    <Compile Include="Json.cs" />
     <Compile Include="INIFile.cs" />
     <Compile Include="AccountProperties.cs" />
     <Compile Include="Privilege20\NativeMethods.cs" />
@@ -81,13 +76,9 @@
     <Compile Include="Settings.cs" />
     <Compile Include="ShellFileType.cs" />
     <Compile Include="SoundArchiveProprietary.cs" />
-    <Compile Include="SoundIcons.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>SoundIcons.resx</DependentUpon>
-    </Compile>
     <Compile Include="SchemeMeta.cs" />
     <Compile Include="SmNative.cs" />
+    <Compile Include="SmTui.cs" />
     <Compile Include="SoundArchive.cs" />
     <Compile Include="SoundScheme.cs" />
     <Compile Include="SoundEvent.cs" />
@@ -95,55 +86,18 @@
     <Compile Include="Translations.cs" />
     <Compile Include="WindowManager.cs" />
     <Compile Include="WindowsVersion.cs" />
-    <EmbeddedResource Include="FormMain.resx">
-      <DependentUpon>FormMain.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="SoundIcons.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>SoundIcons.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <None Include="SoundManager.png" />
     <Content Include="SoundSchemeProprietary.ico">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <None Include="SoundIcons\UAC.png" />
-    <None Include="SoundIcons\Question.png" />
-    <Content Include="SoundIcons\AppClose.png" />
-    <Content Include="SoundIcons\AppOpen.png" />
-    <Content Include="SoundIcons\BatteryCritical.png" />
-    <Content Include="SoundIcons\BatteryLow.png" />
-    <Content Include="SoundIcons\Email.png" />
-    <Content Include="SoundIcons\Maximize.png" />
-    <Content Include="SoundIcons\Menu.png" />
-    <Content Include="SoundIcons\MenuCommand.png" />
-    <Content Include="SoundIcons\Minimize.png" />
-    <Content Include="SoundIcons\Print.png" />
-    <Content Include="SoundIcons\Select.png" />
-    <Content Include="SoundIcons\UnMaximize.png" />
-    <Content Include="SoundIcons\UnMinimize.png" />
     <Content Include="SoundScheme.ico">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="SmNative.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <None Include="SoundIcons\Shutdown.png" />
-    <None Include="SoundIcons\Startup.png" />
-    <None Include="SoundIcons\Logon.png" />
-    <None Include="SoundIcons\Logoff.png" />
-    <None Include="SoundIcons\Information.png" />
-    <None Include="SoundIcons\Warning.png" />
-    <None Include="SoundIcons\Error.png" />
-    <None Include="SoundIcons\DeviceConnect.png" />
-    <None Include="SoundIcons\DeviceDisconnect.png" />
-    <None Include="SoundIcons\DeviceFail.png" />
-    <None Include="SoundIcons\Default.png" />
-    <None Include="SoundIcons\Balloon.png" />
-    <None Include="SoundIcons\Navigate.png" />
-    <None Include="SoundIcons\RecycleBin.png" />
-    <None Include="SoundIcons\Reminder.png" />
     <Content Include="SoundManager.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
