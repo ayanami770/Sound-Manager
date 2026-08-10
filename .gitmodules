@@ -1,0 +1,3 @@
+[submodule "SmNative/utui"]
+	path = SmNative/utui
+	url = https://github.com/ayanami770/Universal-TUI.git

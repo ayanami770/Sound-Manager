@@ -1,7 +1,7 @@
 /*
  * smtui.c - menuconfig-style configuration TUI for SoundManager, built on the
- * vendored Universal-TUI engine (utui.c / utui.h, Apache-2.0, vendored from
- * https://github.com/ayanami770/Universal-TUI branch utf8-longstr).
+ * Universal-TUI engine (Apache-2.0), referenced as the git submodule utui/
+ * (https://github.com/ayanami770/Universal-TUI).
  *
  * The C# side describes the whole configuration tree as a UTF-8 "spec" string
  * of KEY=VALUE lines (values must not contain line breaks), this module builds
