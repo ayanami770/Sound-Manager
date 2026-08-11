@@ -62,7 +62,7 @@ jobs:
 
           Copy-Item SoundManager\bin\Release\SoundManager.exe $out\
           Copy-Item SoundManager\bin\Release\SmNative.dll $out\
-          Copy-Item SoundManager\bin\Release\SoundManager.ico $out\
+          Copy-Item SoundManager\SoundManager.ico $out\
           Copy-Item SoundManager\bin\Release\SoundScheme.ico $out\
           Copy-Item SoundManager\bin\Release\SoundSchemeProprietary.ico $out\
           Copy-Item SoundManagerBg\bin\Release\SoundManagerBg.exe $out\
