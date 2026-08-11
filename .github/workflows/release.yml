@@ -47,7 +47,10 @@ jobs:
 
       - name: Build solution
         shell: cmd
-        run: msbuild SoundManager.sln /p:Configuration=Release /p:Platform=x64 /m /nologo
+        # windows-latest's VS install doesn't carry .NET Framework 4.0 reference
+        # assemblies (only newer targeting packs), so point MSBuild at the
+        # Framework's own v4.0.30319 install like local builds do.
+        run: msbuild SoundManager.sln /p:Configuration=Release /p:Platform=x64 /m /nologo "/p:FrameworkPathOverride=C:\Windows\Microsoft.NET\Framework64\v4.0.30319"
 
       - name: Package release archive
         shell: pwsh
