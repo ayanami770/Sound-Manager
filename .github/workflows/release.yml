@@ -1,0 +1,92 @@
+name: Release
+
+# Builds SoundManager.exe, SoundManagerBg.exe and SmNative.dll for a tagged
+# commit, packages them with the language files and user manual, and attaches
+# the zip to a GitHub Release.
+#
+# SmNative.dll is built with clang (MSYS2 CLANG64) against the Universal-TUI
+# submodule, matching SmNative/build.cmd used for local development.
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install clang (MSYS2 CLANG64)
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: CLANG64
+          install: mingw-w64-clang-x86_64-clang
+          update: true
+
+      - name: Build SmNative.dll
+        shell: msys2 {0}
+        working-directory: SmNative
+        run: |
+          set -eu
+          clang -std=c99 -O2 -Wall -Wextra -DSMNATIVE_BUILD -Iutui -shared \
+            -o SmNative.dll crc32.c inflate.c deflate.c zip.c audio.c utui/utui.c smtui.c \
+            -lole32 -Wl,--no-undefined
+          cp SmNative.dll ../SoundManager/SmNative.dll
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Build solution
+        shell: cmd
+        run: msbuild SoundManager.sln /p:Configuration=Release /p:Platform=x64 /m /nologo
+
+      - name: Package release archive
+        shell: pwsh
+        run: |
+          $ver = "${{ github.ref_name }}" -replace '^v', ''
+          if (-not $ver -or $ver -eq "") { $ver = "dev" }
+          $out = "SoundManager-$ver-win64"
+          New-Item -ItemType Directory -Path $out | Out-Null
+
+          Copy-Item SoundManager\bin\Release\SoundManager.exe $out\
+          Copy-Item SoundManager\bin\Release\SmNative.dll $out\
+          Copy-Item SoundManager\bin\Release\SoundManager.ico $out\
+          Copy-Item SoundManager\bin\Release\SoundScheme.ico $out\
+          Copy-Item SoundManager\bin\Release\SoundSchemeProprietary.ico $out\
+          Copy-Item SoundManagerBg\bin\Release\SoundManagerBg.exe $out\
+          Copy-Item -Recurse SoundManager\Lang $out\Lang
+          Copy-Item UserManual\Readme-En.txt $out\
+          Copy-Item UserManual\Readme-Fr.txt $out\
+
+          Compress-Archive -Path "$out\*" -DestinationPath "$out.zip"
+          echo "ARCHIVE_NAME=$out.zip" >> $env:GITHUB_ENV
+
+      - name: Smoke test the packaged executable
+        shell: pwsh
+        run: |
+          $ver = "${{ github.ref_name }}" -replace '^v', ''
+          if (-not $ver -or $ver -eq "") { $ver = "dev" }
+          & ".\SoundManager-$ver-win64\SoundManager.exe" version
+          if ($LASTEXITCODE -ne 0) { throw "SoundManager.exe version failed with exit code $LASTEXITCODE" }
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ARCHIVE_NAME }}
+          path: ${{ env.ARCHIVE_NAME }}
+
+      - name: Publish GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ env.ARCHIVE_NAME }}
+          generate_release_notes: true
